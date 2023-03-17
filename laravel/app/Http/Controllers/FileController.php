@@ -2,10 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Models\File;
+use App\Models\FileExtension;
+use App\Models\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FileController extends Controller
 {
+    public function uploadFile(Request $request)
+    {
+        foreach ($request->file('files') as $file) {
+            $file->storeAs('users/' . auth()->id(), $file->getClientOriginalName());
+
+            $ext = FileExtension::where('extension', $file->extension())->first();
+
+            if ($ext) {
+                File::create([
+                    'storageId' => Storage::where('userId', auth()->id())->first()->id,
+                    'path' => 'users/' . auth()->id() . '/' . $file->getClientOriginalName(),
+                    'typeId' => $ext->typeId,
+                ]);
+            }
+            else {
+                File::create([
+                    'storageId' => Storage::where('userId', auth()->id())->first()->id,
+                    'path' => 'users/' . auth()->id() . '/' . $file->getClientOriginalName(),
+                    'typeId' => 1,
+                ]);
+            } 
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *

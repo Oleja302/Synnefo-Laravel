@@ -13,10 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('file_type', function (Blueprint $table) {
+        Schema::create('file_extension', function (Blueprint $table) {
             $table->id();
 
-            $table->string('typeTitle'); 
+            $table->unsignedBigInteger('typeId');
+            $table->string('extension'); 
+            
+            $table->foreign('typeId')->references('id')->on('file_type');
 
             $table->timestamps();
         });
@@ -29,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('file_type');
+        //
     }
 };

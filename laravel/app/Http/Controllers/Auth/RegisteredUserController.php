@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Storage;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -41,11 +42,15 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-        ]);
-
+        ]); 
+        
         event(new Registered($user));
 
         Auth::login($user);
+
+        Storage::create([
+            'userId' => auth()->id()
+        ]); 
 
         return redirect(RouteServiceProvider::HOME);
     }
