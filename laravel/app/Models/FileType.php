@@ -12,5 +12,5 @@ class FileType extends Model
 
     protected $fillable = [
         'typeTitle', 
-     ];
+     ]; 
 }

@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Resources\FileCollection;
+use App\Http\Resources\FileResource;
+use App\Models\File; 
+use App\Models\Storage; 
 use App\Http\Controllers\FileController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileController; 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -49,10 +53,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 }); 
 
-Route::post('upload-file', [FileController::class, 'uploadFile']); 
+Route::post('file/upload', [FileController::class, 'uploadFile']); 
+Route::post('folder/upload', [FileController::class, 'uploadFolder']); 
+Route::post('file/download', [FileController::class, 'downloadFile']); 
+Route::post('file/rename', [FileController::class, 'renameFile']); 
+Route::post('file/delete', [FileController::class, 'deleteFile']);
+Route::post('file/favourite', [FileController::class, 'deleteFile']);
 
-require __DIR__.'/auth.php';
+Route::get('file/get', function () { 
+    return FileResource::collection(File::where('storageId', Storage::where('userId', auth()->id())->first()->id)->get()); 
+}); 
 
+
+
+require __DIR__.'/auth.php'; 
 
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();

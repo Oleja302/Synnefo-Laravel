@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\File;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class FileResource extends JsonResource
@@ -11,16 +12,17 @@ class FileResource extends JsonResource
      *
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
+     */ 
+
     public function toArray($request)
-    {
+    { 
         return [
             'id' => $this->id,
             'storageId' => $this->storageId,
             'path' => $this->path,
-            'typeId' => $this->typeId,
+            'typeId' => $this->type->typeTitle,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
+    } 
 }
