@@ -10,7 +10,7 @@ import { Head } from '@inertiajs/vue3';
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <upload></upload>
+                    <fileViewer></fileViewer>
                 </div>
             </div>
         </div>
@@ -18,11 +18,11 @@ import { Head } from '@inertiajs/vue3';
 </template>
 
 <script>
-import upload from '@/Components/FileViewer.vue'
+import fileViewer from '@/Components/FileViewer.vue'
 
 export default {
   components: {
-    upload
+    fileViewer
   }
 }
 </script>

@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\FavouriteFileController;
 use App\Http\Resources\FileCollection;
 use App\Http\Resources\FileResource;
+use App\Models\FavouriteFile;
 use App\Models\File; 
+use App\Models\RemoveFile;
 use App\Models\Storage; 
+use App\Models\Log;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ProfileController; 
 use Illuminate\Foundation\Application;
@@ -55,16 +59,32 @@ Route::middleware('auth')->group(function () {
 
 Route::post('file/upload', [FileController::class, 'uploadFile']); 
 Route::post('folder/upload', [FileController::class, 'uploadFolder']); 
+
 Route::post('file/download', [FileController::class, 'downloadFile']); 
 Route::post('file/rename', [FileController::class, 'renameFile']); 
 Route::post('file/delete', [FileController::class, 'deleteFile']);
-Route::post('file/favourite', [FileController::class, 'deleteFile']);
+Route::post('file/favourite', [FileController::class, 'favouriteFile']);
+
+Route::post('favourite/download', [FavouriteFileController::class, 'downloadFile']);
+Route::post('favourite/rename', [FavouriteFileController::class, 'renameFile']); 
+Route::post('favourite/delete', [FavouriteFileController::class, 'deleteFile']);
+Route::post('favourite/unfavourite', [FavouriteFileController::class, 'unfavourite']);
 
 Route::get('file/get', function () { 
     return FileResource::collection(File::where('storageId', Storage::where('userId', auth()->id())->first()->id)->get()); 
 }); 
 
+Route::get('file/favourite/get', function () { 
+    return FileResource::collection(FavouriteFile::where('storageId', Storage::where('userId', auth()->id())->first()->id)->get()); 
+}); 
 
+Route::get('file/deleted/get', function () { 
+    return FileResource::collection(RemoveFile::where('storageId', Storage::where('userId', auth()->id())->first()->id)->get()); 
+}); 
+
+Route::get('log/get', function () { 
+    return Log::where('userId', auth()->id())->get(); 
+}); 
 
 require __DIR__.'/auth.php'; 
 

@@ -1,12 +1,20 @@
 <template>
-    <button type="button" class="btn btn-primary">Primary</button>
-
-    <div id="inputRename" class="hide row m-2" v-on:keyup.enter="onEnter" v-on:keyup.esc="onEnter">
-        <input id="textRename" class="col-6 rounded-pill" type="text" placeholder="Enter new name">
-        <label for="textRename" class="col-2 col-form-label">
-            {{ '.' + String(this.file.path).split('.').pop() }}
-        </label>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" id="dropdownMenuButton1" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            {{ this.type }}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a @click="getFiles()" class="dropdown-item" href="#">Files</a></li>
+            <li><a @click="getFavourite()" class="dropdown-item" href="#">Favourite</a></li>
+            <li><a @click="getDeleted()" class="dropdown-item" href="#">Deleted</a></li>
+        </ul>
     </div>
+
+    <div id="inputRename" class="hide row m-2" v-on:keyup.enter="startRename" @keydown.esc="hideRename">
+        <input id="textRename" v-model="this.file.path" class="col-6 rounded-pill" type="text">
+    </div>
+
     <table id="table" class="table table-sm table-hover" oncontextmenu="return false;">
         <thead>
             <tr>
@@ -37,11 +45,18 @@
         </tbody>
     </table>
 
-    <div id="menu" class="hide">
+    <div id="menu" class="hide menu">
         <p><button @click="download()">Download <i class="bi bi-cloud-arrow-down-fill"></i></button></p>
         <p><button @click="favourite()">Favourite <i class="bi bi-star-fill"></i></button></p>
-        <p><button @click="rename()">Rename <i class="bi bi-pencil-square"></i></button></p>
+        <p><button @click="showRename()">Rename <i class="bi bi-pencil-square"></i></button></p>
         <p><button @click="remove()">Delete <i class="bi bi-trash-fill"></i></button></p>
+    </div>
+
+    <div id="favouriteMenu" class="hide menu">
+        <p><button @click="downloadFavourite()">Download <i class="bi bi-cloud-arrow-down-fill"></i></button></p>
+        <p><button @click="unfavourite()">Unfavourite <i class="bi bi-star"></i></button></p>
+        <p><button @click="showRename()">Rename <i class="bi bi-pencil-square"></i></button></p>
+        <p><button @click="removeFavourite()">Delete <i class="bi bi-trash-fill"></i></button></p>
     </div>
 </template>
 
@@ -49,13 +64,14 @@
 export default {
     data() {
         return {
+            type: '',
             files: [],
             viewFiles: [],
             markFiles: [],
             currentPath: '',
             level: 0,
-
             file: 0,
+            initialFile: 0,
             event: ''
         }
     },
@@ -63,13 +79,7 @@ export default {
         this.getFiles()
     },
     methods: {
-        getFiles() {
-            axios.get('/file/get').then(
-                response => {
-                    this.files = response.data.data
-                    this.showFileTree()
-                })
-        },
+        //Common function
         showFileTree() {
 
             this.viewFiles = []
@@ -123,41 +133,71 @@ export default {
                 this.currentPath += file.path + '/'
                 this.level++
 
-                this.markFiles = []
-
+                this.markFiles = [] 
                 this.showFileTree()
-            }
+            } 
         },
         back() {
             if (this.level - 1 < 0) return
-            this.currentPath = this.currentPath.split('/').filter(Boolean).slice(0, -1).join('/')
-            this.level--
+            this.currentPath = this.currentPath.split('/').filter(Boolean).slice(0, -1).join('/') 
+            if(this.currentPath != '' && this.currentPath.at(-1)!='/') this.currentPath += '/'
+            this.level-- 
 
-            this.markFiles = []
-
-            this.showFileTree()
+            this.markFiles = [] 
+            this.showFileTree() 
         },
         showMenu(file, $event) {
-            let menu = document.getElementById('menu')
-            menu.style.position = "absolute";
-            menu.style.left = $event.x + 'px';
-            menu.style.top = $event.y + 'px';
+            if (document.getElementById('inputRename').classList.contains('hide') &&
+            this.type != 'Deleted') {
+                let menu
+                if (this.type == 'Favourite') menu = document.getElementById('favouriteMenu')
+                else menu = document.getElementById('menu')
 
-            menu.classList.toggle('hide')
+                menu.style.position = "absolute";
+                menu.style.left = $event.x + 'px';
+                menu.style.top = $event.y + 'px';
 
-            this.file = file
-            this.event = $event
+                menu.classList.toggle('hide')
+
+                this.file = file 
+                this.initialFile = JSON.parse(JSON.stringify(file)) 
+                this.event = $event
+            }
         },
         markFile(file, $event) {
-            if (file.id != '') {
+            if (file.id != '' 
+            && this.type != 'Deleted') {
                 let index = this.markFiles.indexOf(file.id)
                 if (index >= 0)
                     this.markFiles.splice(index, 1)
                 else
                     this.markFiles.push(file.id)
                 $event.srcElement.parentElement.classList.toggle('mark-row')
-            }
+            } 
         },
+        removeFromFileTree()
+        {
+            this.files = this.files.filter(e => {
+                return this.markFiles.indexOf(e.id) == -1;
+            }) 
+            
+            this.viewFiles = this.viewFiles.filter(e => {
+                return this.markFiles.indexOf(e.id) == -1;
+            }) 
+        },
+
+        //Operation with file
+        getFiles() {
+            this.level = 0
+            this.currentPath = ''
+            this.type = "Files"
+
+            axios.get('/file/get').then(
+                response => {
+                    this.files = response.data.data
+                    this.showFileTree()
+                })
+        }, 
         download() {
             document.getElementById('menu').classList.add('hide')
 
@@ -183,42 +223,124 @@ export default {
             document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'));
             this.markFiles = []
         },
-        rename() {
-            document.getElementById('menu').classList.add('hide')
-            document.getElementById('inputRename').classList.remove('hide')
+        showRename() {
+            if (this.file.id != '') {
+                document.getElementById('menu').classList.add('hide')
+                document.getElementById('favouriteMenu').classList.add('hide')
+                document.getElementById('inputRename').classList.remove('hide')
+            }
         },
-        onEnter() {
+        startRename() {
+            if (this.file.id == '' && document.getElementById("textRename").value == '') return;
             document.getElementById('inputRename').classList.add('hide')
-            axios.post('/file/rename',
-                {
-                    id: this.file.id,
-                    name: document.getElementById("textRename").value
-                })
+
+            if(this.type == 'Files')
+                axios.post('/file/rename',
+                    {
+                        id: this.file.id,
+                        name: document.getElementById("textRename").value
+                    }) 
+            else if(this.type == 'Favourite')
+                axios.post('/favourite/rename',
+                    {
+                        id: this.file.id,
+                        name: document.getElementById("textRename").value
+                    }) 
+        },
+        hideRename() {
+            document.getElementById('inputRename').classList.add('hide') 
+            this.file.path = this.initialFile.path
         },
         remove() {
             axios.post('/file/delete', this.markFiles)
             document.getElementById('menu').classList.add('hide')
+            document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'))
+            this.removeFromFileTree()
         },
         favourite() {
             axios.post('/file/favourite', this.markFiles)
             document.getElementById('menu').classList.add('hide')
-        }
+            document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'));
+            this.removeFromFileTree()
+        },
+
+        //Operation with favourite file
+        getFavourite() {
+            this.level = 0
+            this.currentPath = ''
+            this.type = "Favourite"
+
+            axios.get('/file/favourite/get').then(
+                response => {
+                    this.files = response.data.data
+                    this.showFileTree()
+                })
+        },
+        downloadFavourite() {
+            document.getElementById('favouriteMenu').classList.add('hide')
+
+            axios({
+                method: 'post',
+                url: 'favourite/download',
+                data: {
+                    filesID: this.markFiles
+                },
+                responseType: 'blob'
+            })
+                .then((response) => {
+                    let fileURL = window.URL.createObjectURL(new Blob([response.data]));
+                    let fURL = document.createElement('a');
+
+                    fURL.href = fileURL;
+                    fURL.setAttribute('download', 'archieve.zip');
+                    document.body.appendChild(fURL);
+
+                    fURL.click();
+                });
+
+            document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'));
+            this.markFiles = []
+        },
+        removeFavourite(){
+            axios.post('/favourite/delete', this.markFiles)
+            document.getElementById('favouriteMenu').classList.add('hide')
+            document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'))
+            this.removeFromFileTree()
+        },
+        unfavourite() {
+            axios.post('/favourite/unfavourite', this.markFiles)
+            document.getElementById('favouriteMenu').classList.add('hide')
+            document.querySelectorAll(".mark-row").forEach(element => element.classList.remove('mark-row'))
+            this.removeFromFileTree()
+        },
+        
+        //Operation with deleted file
+        getDeleted() {
+            this.level = 0
+            this.currentPath = ''
+            this.type = "Deleted"
+
+            axios.get('/file/deleted/get').then(
+                response => {
+                    this.files = response.data.data
+                    this.showFileTree()
+                })
+        },
     }
 } 
 </script>
 
-<style>
-#menu {
-    padding: 10px;
-    background-color: aliceblue;
-    border-radius: 10px;
-}
+<style> .menu {
+     padding: 10px;
+     background-color: aliceblue;
+     border-radius: 10px;
+ }
 
-.hide {
-    display: none;
-}
+ .hide {
+     display: none;
+ }
 
-.mark-row {
-    background-color: aliceblue;
-}
+ .mark-row {
+     background-color: aliceblue;
+ }
 </style>

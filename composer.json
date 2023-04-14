@@ -1,0 +1,14 @@
+{
+    "name": "oleja302/synnefo",
+    "autoload": {
+        "psr-4": {
+            "Oleja302\\Synnefo\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "oleja"
+        }
+    ],
+    "require": {}
+}

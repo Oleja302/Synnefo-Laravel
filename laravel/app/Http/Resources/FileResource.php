@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Models\File;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class FileResource extends JsonResource

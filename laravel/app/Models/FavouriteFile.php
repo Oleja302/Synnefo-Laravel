@@ -14,5 +14,12 @@ class FavouriteFile extends Model
         'storageId',
         'path',
         'typeId',
-    ];
+     ]; 
+     
+     protected $with = ['type'];
+
+    public function type()
+    {
+        return $this->belongsTo('App\Models\FileType', 'typeId');
+    } 
 }

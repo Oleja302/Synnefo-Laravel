@@ -2,83 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use Illuminate\Http\Request;
 
 class LogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function uploadFile($count)
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Upload {$count} files", 
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function uploadFolder($count)
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Upload folder with {$count} files", 
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function downloadFile($count)
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Download {$count} files", 
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function renameFile()
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Rename file", 
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function deleteFile($count)
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Delete {$count} files", 
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function favouriteFile($count)
     {
-        //
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Add to favourite {$count} files", 
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function unfavourite($count)
     {
-        //
-    }
+        Log::create([
+            'userId' => auth()->id(),
+            'description' => "Remove from favourite {$count} files", 
+        ]);
+    } 
 }
